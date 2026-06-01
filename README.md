@@ -1,6 +1,6 @@
 # Roast My Squad
 
-Rate My Squad is a React + TypeScript application that transforms eFootball squad screenshots into AI-powered roasts and shareable memes.
+Roast My Squad is a React + TypeScript application that transforms eFootball squad screenshots into AI-powered roasts and shareable memes.
 
 ## Features
 
