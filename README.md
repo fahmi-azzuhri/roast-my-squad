@@ -1,73 +1,75 @@
-# React + TypeScript + Vite
+# Rate My Squad
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Rate My Squad is a React + TypeScript application that transforms eFootball squad screenshots into AI-powered roasts and shareable memes.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Upload eFootball squad screenshots
+- Extract text from screenshots using OCR (`tesseract.js`)
+- Analyze squads with Google Gemini AI (`@google/genai`)
+- 4 roast intensity levels: Smooth, Medium, Brutal, Toxic
+- Display scores, netizen comments, tactical analysis, and roasted memes
+- Download memes as PNG using DOM-to-image
 
-## React Compiler
+## Usage
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Start the development server:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Open your browser to the displayed address, usually `http://localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. Select your desired roast intensity level
+4. Upload an eFootball squad screenshot
+5. Wait for AI analysis and view the roast results
+6. Download the meme to share
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Environment Configuration
+
+To enable Google Gemini API calls, add the following environment variable to your `.env` file:
+
+```bash
+VITE_GEMINI_API_KEY=your_api_key_here
 ```
+
+If you don't have an API key yet, obtain one from Google Generative AI and add it to your `.env` file.
+
+## Tech Stack
+
+- Vite
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Google Generative AI (`@google/genai`)
+- OCR: `tesseract.js`
+- DOM-to-image: `html-to-image`
+- Icons: `lucide-react`
+- HTTP: `axios`
+
+## Folder Structure
+
+- `src/App.tsx` - application entry point and upload/result flow
+- `src/components/uploadArea` - image upload component
+- `src/components/RoastLevelSelector` - roast intensity selector
+- `src/components/RoastResult` - roast result display
+- `src/api/roast.ts` - prompt logic and AI API calls
+- `src/utils/ocr.ts` - screenshot text extraction
+- `src/utils/share.ts` - meme creation and download
+- `src/types/roastResult.ts` - roast result type definitions
+- `src/index.css` - global styles and fonts
+
+## Scripts
+
+- `npm run dev` - run development server
+- `npm run build` - build application for production
+- `npm run preview` - preview production build
+- `npm run lint` - run ESLint
+
+## Notes
+
+- Ensure your `.env` file contains `VITE_GEMINI_API_KEY` as the API key must be available in the browser.
+- If meme downloads aren't working, verify that `html-to-image` successfully renders elements with styling.
+- This application relies on screenshot analysis for best results; clear, un-blurred screenshots produce the best analysis.
