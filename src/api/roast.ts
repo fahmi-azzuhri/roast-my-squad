@@ -41,7 +41,8 @@ export async function roastSquad(
 ): Promise<RoastResult> {
   const config = levelConfig[level];
 
-  const ocrSection = ocrText && ocrText.trim() ? `\nDETECTED TEXT (OCR): ${ocrText.trim()}` : "";
+  const ocrSection =
+    ocrText && ocrText.trim() ? `\nDETECTED TEXT (OCR): ${ocrText.trim()}` : "";
 
   const prompt = `Kamu adalah AI Roaster eFootball Indonesia yang BRUTAL, JUJUR, dan VIRAL.
 LEVEL ROAST: ${config.intensity}
@@ -111,7 +112,11 @@ WAJIB RETURN PURE JSON (no markdown, no backticks, no code blocks):
     ],
   });
 
-  const responseText = response.text.trim();
+  const responseText = response.text?.trim();
+
+  if (!responseText) {
+    throw new Error("AI response is empty");
+  }
 
   try {
     const parsed = JSON.parse(responseText);
