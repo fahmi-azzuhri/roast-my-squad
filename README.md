@@ -1,3 +1,5 @@
+<img width="1366" height="705" alt="image" src="https://github.com/user-attachments/assets/f898b514-d9bc-402f-a2d5-b967e15bedc9" />
+
 # Roast My Squad
 
 Roast My Squad is a React + TypeScript application that transforms eFootball squad screenshots into AI-powered roasts and shareable memes.
@@ -73,3 +75,6 @@ If you don't have an API key yet, obtain one from Google Generative AI and add i
 - Ensure your `.env` file contains `VITE_GEMINI_API_KEY` as the API key must be available in the browser.
 - If meme downloads aren't working, verify that `html-to-image` successfully renders elements with styling.
 - This application relies on screenshot analysis for best results; clear, un-blurred screenshots produce the best analysis.
+
+## Support me
+https://saweria.co/widgets/qr?streamKey=eaf0065f59e5018dd8b6b241f711ff9f
