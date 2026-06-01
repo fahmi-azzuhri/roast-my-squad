@@ -7,6 +7,17 @@ const ai = new GoogleGenAI({
 
 export type RoastLevel = "smooth" | "medium" | "brutal" | "toxic";
 
+const GEMINI_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+];
+
+const OPENROUTER_MODELS = [
+  "qwen/qwen2.5-vl-72b-instruct",
+  "meta-llama/llama-3.2-11b-vision-instruct",
+];
+
 const levelConfig = {
   smooth: {
     intensity: "MILD - Humor based, mostly observational",
@@ -34,71 +45,9 @@ const levelConfig = {
   },
 };
 
-export async function roastSquad(
-  imageBase64: string,
-  level: RoastLevel = "medium",
-  ocrText?: string,
-): Promise<RoastResult> {
-  const config = levelConfig[level];
-
-  const ocrSection =
-    ocrText && ocrText.trim() ? `\nDETECTED TEXT (OCR): ${ocrText.trim()}` : "";
-
-  const prompt = `Kamu adalah AI Roaster eFootball Indonesia yang BRUTAL, JUJUR, dan VIRAL.
-LEVEL ROAST: ${config.intensity}
-TONE: ${config.tone}
-
-TUGAS: Analisa DETAIL screenshot squad eFootball ini. PERHATIKAN:
-- Formasi yang dipakai
-- Pemain premium vs gratisan
-- Quality build vs investasi dompet
-- Tingkat meta abuse (spam through pass, counter attack, etc)
-- IQ taktik dan gameplay
-- Key player yang jadi tulang punggung
-
-${ocrSection}
-
-SCORING (0-10):
-- roastScore: Seberapa parah squad ini? 10 = "ini akun diwarisin", 0 = "ok lah"
-- walletScore: Berapa banyak duit yang dikeluarin? 10 = sultan 100%, 0 = squad gratisan
-- flexScore: Seberapa dia flex? 10 = "gw kaya banget", 0 = "low-key"
-- metaAbuse: Seberapa meta? 10 = pure meta abuse, 0 = creative build
-- tacticalIQ: Skill taktik defensanya gimana? 10 = "bisa main sabar", 0 = "auto klik"
-- spamThroughPass: Persen kemungkinan spam through pass (0-100)
-
-NETIZEN COMMENTS: ${config.comments}. Generate yang LUCU dan MEMORABLE.
-
-TOXIC ROAST: ${config.roastLength} Buat yang pedas, memorable, dan bikinin orang tertawa.
-
-TIKTOK MODE: Format super pendek (2-3 baris) yang VIRAL di TikTok, pake emoji
-
-DETECTIVE:
-- indications: List 3-5 bukti dari squad ini
-- conclusion: Satu kesimpulan bold
-
-WAJIB RETURN PURE JSON (no markdown, no backticks, no code blocks):
-{
-  "roastScore": <number 0-10>,
-  "walletScore": <number 0-10>,
-  "flexScore": <number 0-10>,
-  "metaAbuse": <number 0-10>,
-  "tacticalIQ": <number 0-10>,
-  "spamThroughPass": <number 0-100>,
-  "squadType": "<Sultan|Meta Abuser|Balance|Casual>",
-  "squadValue": "<est. value e.g. Rp XXX.XXX.XXX+>",
-  "strengths": [<string>, <string>, <string>],
-  "weaknesses": [<string>, <string>, <string>],
-  "netizanComments": [<string>, <string>, <string>, <string>, <string>],
-  "toxicRoast": "<string roast>",
-  "tiktokMode": "<string 2-3 baris>",
-  "detective": {
-    "indications": [<string>, <string>, <string>],
-    "conclusion": "<string bold conclusion>"
-  }
-}`;
-
+async function tryGemini(model: string, imageBase64: string, prompt: string) {
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model,
     contents: [
       {
         inlineData: {
@@ -112,20 +61,153 @@ WAJIB RETURN PURE JSON (no markdown, no backticks, no code blocks):
     ],
   });
 
-  const responseText = response.text?.trim();
+  return response.text?.trim();
+}
 
-  if (!responseText) {
-    throw new Error("AI response is empty");
+async function tryOpenRouter(
+  model: string,
+  imageBase64: string,
+  prompt: string,
+) {
+  const response = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: prompt,
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:image/jpeg;base64,${imageBase64}`,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter Error ${response.status}`);
   }
 
+  const data = await response.json();
+
+  return data.choices?.[0]?.message?.content?.trim();
+}
+
+async function generateWithFallback(imageBase64: string, prompt: string) {
+  let lastError: unknown;
+
+  for (const model of GEMINI_MODELS) {
+    try {
+      console.log(`Trying Gemini ${model}`);
+
+      const result = await tryGemini(model, imageBase64, prompt);
+
+      if (result) {
+        console.log(`Success ${model}`);
+        return result;
+      }
+    } catch (error) {
+      console.error(`${model} failed`, error);
+      lastError = error;
+    }
+  }
+
+  for (const model of OPENROUTER_MODELS) {
+    try {
+      console.log(`Trying OpenRouter ${model}`);
+
+      const result = await tryOpenRouter(model, imageBase64, prompt);
+
+      if (result) {
+        console.log(`Success ${model}`);
+        return result;
+      }
+    } catch (error) {
+      console.error(`${model} failed`, error);
+      lastError = error;
+    }
+  }
+
+  throw lastError ?? new Error("All providers failed");
+}
+
+export async function roastSquad(
+  imageBase64: string,
+  level: RoastLevel = "medium",
+  ocrText?: string,
+): Promise<RoastResult> {
+  const config = levelConfig[level];
+
+  const ocrSection = ocrText?.trim()
+    ? `\nDETECTED TEXT (OCR): ${ocrText.trim()}`
+    : "";
+
+  const prompt = `
+Kamu adalah AI Roaster eFootball Indonesia yang BRUTAL, JUJUR, dan VIRAL.
+
+LEVEL ROAST: ${config.intensity}
+TONE: ${config.tone}
+
+TUGAS:
+Analisa DETAIL screenshot squad eFootball ini.
+
+PERHATIKAN:
+- Formasi yang dipakai
+- Pemain premium vs gratisan
+- Quality build vs investasi dompet
+- Tingkat meta abuse
+- IQ taktik
+- Key player
+
+${ocrSection}
+
+SCORING:
+- roastScore (0-10)
+- walletScore (0-10)
+- flexScore (0-10)
+- metaAbuse (0-10)
+- tacticalIQ (0-10)
+- spamThroughPass (0-100)
+
+NETIZEN COMMENTS:
+${config.comments}
+
+TOXIC ROAST:
+${config.roastLength}
+
+TIKTOK MODE:
+2-3 baris viral + emoji
+
+RETURN JSON ONLY
+`;
+
+  const responseText = await generateWithFallback(imageBase64, prompt);
+
   try {
-    const parsed = JSON.parse(responseText);
-    return parsed as RoastResult;
+    return JSON.parse(responseText) as RoastResult;
   } catch {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]) as RoastResult;
+
+    if (!jsonMatch) {
+      throw new Error("Invalid JSON response");
     }
-    throw new Error("Failed to parse AI response");
+
+    return JSON.parse(jsonMatch[0]) as RoastResult;
   }
 }
