@@ -1,7 +1,6 @@
 import { Download, Share2 } from "lucide-react";
 import type { RoastResult } from "../../types/roastResult";
 import { downloadMeme, shareToTiktok } from "../../utils/share";
-import { useNavigate } from "react-router-dom";
 import "./result.css";
 
 interface RoastResultProps {
@@ -21,10 +20,6 @@ const ProgressBar = ({ value, max = 10 }: { value: number; max?: number }) => {
 };
 
 export default function RoastResult({ data }: RoastResultProps) {
-  const navigate = useNavigate();
-  const goHome = () => {
-    navigate("/");
-  };
   const handleDownload = async () => {
     try {
       await downloadMeme(data);
@@ -46,17 +41,13 @@ export default function RoastResult({ data }: RoastResultProps) {
 
   return (
     <div className="roast-container max-w-2xl mx-auto">
-      {/* Header */}
       <div className="roast-header text-center mb-8">
-        <button onClick={goHome}>
-          <h1 className="text-4xl font-black text-red-600">Roast My Squad</h1>
-        </button>
+        <h1 className="text-4xl font-black text-red-600">Roast My Squad</h1>
         <p className="text-gray-600 text-sm mt-1">
           {data.squadType} Squad Detected
         </p>
       </div>
 
-      {/* Main Scores Card */}
       <div className="roast-card bg-linear-to-br from-red-900 to-black text-white p-8 rounded-lg mb-6">
         <div className="grid grid-cols-2 gap-6">
           <div>
@@ -94,14 +85,12 @@ export default function RoastResult({ data }: RoastResultProps) {
         </div>
       </div>
 
-      {/* All Scores Grid */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         <ScoreBox label="Flex Score" value={data.flexScore} />
         <ScoreBox label="Tactical IQ" value={data.tacticalIQ} />
         <ScoreBox label="Meta Abuse" value={data.metaAbuse} />
       </div>
 
-      {/* Detective Section */}
       <div className="roast-card bg-blue-50 border-2 border-blue-200 p-6 rounded-lg mb-6">
         <h2 className="text-lg font-black text-blue-900 mb-3">
           🕵️ HASIL INVESTIGASI AI
@@ -142,13 +131,11 @@ export default function RoastResult({ data }: RoastResultProps) {
         </div>
       </div>
 
-      {/* Toxic Roast */}
       <div className="roast-card bg-gray-900 text-white p-6 rounded-lg mb-6 border-l-4 border-red-600">
         <h3 className="text-lg font-black mb-3">☠️ TOXIC RANKED</h3>
         <p className="text-sm leading-relaxed italic">{data.toxicRoast}</p>
       </div>
 
-      {/* Netizen Comments */}
       <div className="roast-card bg-gray-50 p-6 rounded-lg mb-6">
         <h3 className="text-lg font-black text-gray-900 mb-3">
           💬 Komentar Netizen
@@ -165,7 +152,6 @@ export default function RoastResult({ data }: RoastResultProps) {
         </div>
       </div>
 
-      {/* TikTok Mode */}
       <div className="roast-card bg-linear-to-r from-pink-600 to-purple-600 text-white p-6 rounded-lg mb-6">
         <h3 className="text-lg font-black mb-3">🎬 TIKTOK MODE</h3>
         <p className="text-sm leading-relaxed font-bold whitespace-pre-wrap">
@@ -173,7 +159,6 @@ export default function RoastResult({ data }: RoastResultProps) {
         </p>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex gap-3 justify-center mb-8">
         <button
           onClick={handleDownload}
