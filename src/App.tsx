@@ -42,84 +42,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 to-black">
-      <div className="max-w-6xl mx-auto p-4 sm:p-10">
-        {!result && (
-          <div className="text-center mb-12">
-            <h1 className="text-4xl sm:text-4xl font-bold mb-2 finger-paint-regular text-red-500 animate-pulse">
-              Roast My Squad
-            </h1>
-            <div className="flex gap-2 flex-row justify-center mb-4">
-              <Flame size={48} className=" text-red-500 mb-4 animate-pulse" />
-              <Flame size={48} className=" text-red-500 mb-4 animate-pulse" />
-              <Flame size={48} className=" text-red-500 mb-4 animate-pulse" />
-            </div>
-            <p className="text-gray-400 text-lg">
-              Upload squad, siap dihina AI.
-            </p>
-          </div>
-        )}
-        {loading && (
-          <div className="text-center mt-8">
-            <p className="text-gray-400 animate-pulse">
-              Analyzing your squad with {selectedLevel} level...
-            </p>
-          </div>
-        )}
-
-        {!result ? (
-          <>
-            {showLevelSelector ? (
-              <RoastLevelSelector onSelect={handleLevelSelect} />
-            ) : (
-              <>
-                <div className="mb-8 p-4 bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Current Level:</p>
-                    <p className="text-white font-bold capitalize">
-                      {selectedLevel}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setShowLevelSelector(true)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition"
-                  >
-                    Change Level
-                  </button>
-                </div>
-
-                <UploadArea onUpload={handleUpload} disabled={loading} />
-              </>
-            )}
-
-            {error && (
-              <div className="mt-8 p-4 bg-red-900 text-red-100 rounded-lg text-center">
-                <p>{error}</p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            <RoastResult data={result} />
-            <div className="text-center mt-8 flex gap-4 justify-center">
-              <button
-                onClick={() => setShowLevelSelector(true)}
-                className="px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition"
-              >
-                Roast dengan Level Lain
-              </button>
-              <button
-                onClick={() => {
-                  setResult(null);
-                  setShowLevelSelector(false);
-                }}
-                className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition"
-              >
-                Roast Squad Lain
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      <h1 className="text-4xl font-black text-red-600 text-center pt-12">
+        <Flame className="inline-block mr-2 animate-pulse" />
+        eROAST - Rate My Squad currently maintained, come back later!"
+      </h1>
     </div>
   );
 }
