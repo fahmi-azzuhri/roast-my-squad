@@ -1,9 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 import type { RoastResult } from "../types/roastResult";
-
-const ai = new GoogleGenAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY,
-});
+import { mistralFetch } from "../utils/mistral";
 
 export type RoastLevel = "smooth" | "medium" | "brutal" | "toxic";
 
@@ -45,16 +41,36 @@ export async function roastSquad(
     ocrText && ocrText.trim() ? `\nDETECTED TEXT (OCR): ${ocrText.trim()}` : "";
 
   const prompt = `Kamu adalah AI Roaster eFootball Indonesia yang BRUTAL, JUJUR, dan VIRAL.
+Semua jawaban WAJIB dalam bahasa Indonesia yang natural. Jangan pakai bahasa Inggris kecuali nama fitur yang memang tidak bisa diterjemahkan.
 LEVEL ROAST: ${config.intensity}
 TONE: ${config.tone}
 
-TUGAS: Analisa DETAIL screenshot squad eFootball ini. PERHATIKAN:
+TUGAS: Analisa DETAIL screenshot squad eFootball ini.
+Wajib bedakan tipe kartu dari visualnya, bukan dari tebakan.
+Lakukan analisis dengan urutan ini:
+1. Identifikasi kartu yang terlihat jelas dari frame, artwork, aura, border, label, dan styling visual.
+2. Bedakan base, epic, dan showtime hanya dari bukti visual yang benar-benar tampak.
+3. Kalau visual blur, terlalu kecil, atau card art tidak terlihat, pilih unknown daripada mengarang.
+4. Kalau campuran, tentukan mixed dan jelaskan mana yang paling dominan.
+
+FOKUS ANALISIS:
 - Formasi yang dipakai
 - Pemain premium vs gratisan
-- Quality build vs investasi dompet
-- Tingkat meta abuse (spam through pass, counter attack, etc)
+- Kualitas build vs investasi dompet
+- Tingkat meta abuse (spam through pass, counter attack, dll)
 - IQ taktik dan gameplay
 - Key player yang jadi tulang punggung
+- KATEGORI KARTU: base, epic, showtime, campuran, atau tidak dapat dipastikan
+
+PETUNJUK KARTU:
+- base biasanya tampak desain standar, simpel, dan tanpa frame/ornamen event yang mencolok
+- epic biasanya punya frame/ornamen khas event legendaris dan tampilan spesial yang jelas
+- showtime biasanya punya identitas visual paling premium/unik, paling mencolok, dan terasa event exclusive
+- jangan pakai nama pemain saja untuk menebak kartu; nama pemain bukan bukti yang cukup
+- kalau OCR menyebut pemain terkenal, itu hanya petunjuk tambahan, bukan penentu tipe kartu
+- kalau visual tidak cukup jelas, pilih "unknown" dan jelaskan bahwa tidak cukup bukti
+- jangan klaim epic/showtime kalau bukti visualnya lemah
+- confidence harus mencerminkan kualitas bukti visual: 0-39 = lemah, 40-69 = sedang, 70-100 = kuat
 
 ${ocrSection}
 
@@ -66,15 +82,26 @@ SCORING (0-10):
 - tacticalIQ: Skill taktik defensanya gimana? 10 = "bisa main sabar", 0 = "auto klik"
 - spamThroughPass: Persen kemungkinan spam through pass (0-100)
 
-NETIZEN COMMENTS: ${config.comments}. Generate yang LUCU dan MEMORABLE.
+NETIZEN COMMENTS: ${config.comments}. Generate yang LUCU, MEMORABLE, dan full bahasa Indonesia.
 
-TOXIC ROAST: ${config.roastLength} Buat yang pedas, memorable, dan bikinin orang tertawa.
+TOXIC ROAST: ${config.roastLength} Buat yang pedas, memorable, dan bikinin orang tertawa. Tetap full bahasa Indonesia.
 
-TIKTOK MODE: Format super pendek (2-3 baris) yang VIRAL di TikTok, pake emoji
+TIKTOK MODE: Format super pendek (2-3 baris) yang VIRAL di TikTok, pakai emoji, dan full bahasa Indonesia.
 
 DETECTIVE:
-- indications: List 3-5 bukti dari squad ini
-- conclusion: Satu kesimpulan bold
+- indications: List 3-5 bukti visual yang dipakai untuk menilai kartu dan squad
+- conclusion: Satu kesimpulan singkat dan tegas dalam bahasa Indonesia
+
+CARD PROFILE:
+- dominant: "base", "epic", "showtime", "mixed", atau "unknown"
+- confidence: angka 0-100 untuk seberapa yakin kamu dengan klasifikasi kartu berdasarkan visual
+- clues: 4-5 bukti visual yang mendukung klasifikasi kartu
+- note: satu kalimat singkat kenapa kartu itu diklasifikasikan begitu atau kenapa tidak pasti
+
+OUTPUT STYLE:
+- Roasting tetap tajam, tapi penjelasan analisis kartu harus presisi
+- Kalau ragu, bilang ragu. Jangan menaikkan confidence tanpa alasan visual yang kuat
+- Jika banyak pemain berbeda dengan tipe kartu berbeda, pakai mixed dan sebutkan pola dominannya
 
 WAJIB RETURN PURE JSON (no markdown, no backticks, no code blocks):
 {
@@ -86,6 +113,12 @@ WAJIB RETURN PURE JSON (no markdown, no backticks, no code blocks):
   "spamThroughPass": <number 0-100>,
   "squadType": "<Sultan|Meta Abuser|Balance|Casual>",
   "squadValue": "<est. value e.g. Rp XXX.XXX.XXX+>",
+  "cardProfile": {
+    "dominant": "<base|epic|showtime|mixed|unknown>",
+    "confidence": <number 0-100>,
+    "clues": [<string>, <string>, <string>],
+    "note": "<string>"
+  },
   "strengths": [<string>, <string>, <string>],
   "weaknesses": [<string>, <string>, <string>],
   "netizanComments": [<string>, <string>, <string>, <string>, <string>],
@@ -97,22 +130,48 @@ WAJIB RETURN PURE JSON (no markdown, no backticks, no code blocks):
   }
 }`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: [
+  const imageUrl = imageBase64.startsWith("data:")
+    ? imageBase64
+    : `data:image/jpeg;base64,${imageBase64}`;
+
+  const response = await mistralFetch<{
+    choices?: Array<{
+      message?: {
+        content?: string | Array<{ type?: string; text?: string }>;
+      };
+    }>;
+  }>("/chat/completions", {
+    model: "mistral-large-2512",
+    response_format: { type: "json_object" },
+    temperature: 0.1,
+    top_p: 0.8,
+    max_tokens: 1400,
+    messages: [
       {
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: imageBase64,
-        },
-      },
-      {
-        text: prompt,
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: prompt,
+          },
+          {
+            type: "image_url",
+            image_url: imageUrl,
+          },
+        ],
       },
     ],
   });
 
-  const responseText = response.text?.trim();
+  const responseContent = response.choices?.[0]?.message?.content;
+  const responseText = Array.isArray(responseContent)
+    ? responseContent
+        .map((part) => (part.type === "text" ? part.text : ""))
+        .join("")
+        .trim()
+    : typeof responseContent === "string"
+      ? responseContent.trim()
+      : "";
 
   if (!responseText) {
     throw new Error("AI response is empty");

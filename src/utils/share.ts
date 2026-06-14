@@ -37,11 +37,12 @@ export async function downloadMeme(data: RoastResult) {
 
 export async function shareToTiktok(data: RoastResult) {
   const text = `
-eROAST - Squad Analysis
-🏆 Roast Score: ${data.roastScore}/10
-💸 Dompet: ${data.walletScore}/10
+eROAST - Analisis Squad
+🏆 Skor Roasting: ${data.roastScore}/10
+💸 Skor Dompet: ${data.walletScore}/10
 ☠️ Meta Abuse: ${data.metaAbuse}/10
 🧠 Tactical IQ: ${data.tacticalIQ}/10
+🃏 Kartu dominan: ${data.cardProfile.dominant} (${data.cardProfile.confidence}%)
 
 ${data.tiktokMode}
 
@@ -84,6 +85,7 @@ function generateMemeHTML(data: RoastResult) {
     <div style="font-size: 120px; line-height: 1; margin-bottom: 10px;">☠️</div>
     <h1 style="font-size: 80px; font-weight: 900; color: #ff3333; margin: 0; letter-spacing: 3px;">eROAST</h1>
     <p style="font-size: 40px; color: #ff9999; margin: 20px 0 0 0;">${data.squadType} Squad</p>
+    <p style="font-size: 26px; color: #ffcccc; margin: 10px 0 0 0;">Kartu dominan: ${data.cardProfile.dominant} (${data.cardProfile.confidence}%)</p>
   </div>
 
   <div style="text-align: center; background: #330000; padding: 40px; border-radius: 20px; border: 2px solid #ff3333;">

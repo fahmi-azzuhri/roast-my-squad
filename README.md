@@ -5,8 +5,8 @@ Roast My Squad is a React + TypeScript application that transforms eFootball squ
 ## Features
 
 - Upload eFootball squad screenshots
-- Extract text from screenshots using OCR (`tesseract.js`)
-- Analyze squads with Google Gemini AI (`@google/genai`)
+- Extract text from screenshots using Mistral OCR
+- Analyze squads with Mistral vision + JSON output
 - 4 roast intensity levels: Smooth, Medium, Brutal, Toxic
 - Display scores, netizen comments, tactical analysis, and roasted memes
 - Download memes as PNG using DOM-to-image
@@ -29,13 +29,13 @@ npm run dev
 
 ## Environment Configuration
 
-To enable Google Gemini API calls, add the following environment variable to your `.env` file:
+To enable Mistral API calls, add the following environment variable to your `.env` file:
 
 ```bash
-VITE_GEMINI_API_KEY=your_api_key_here
+VITE_MISTRAL_API_KEY=your_api_key_here
 ```
 
-If you don't have an API key yet, obtain one from Google Generative AI and add it to your `.env` file.
+If you don't have an API key yet, create one from your Mistral dashboard and add it to your `.env` file.
 
 ## Tech Stack
 
@@ -43,8 +43,8 @@ If you don't have an API key yet, obtain one from Google Generative AI and add i
 - React 19
 - TypeScript
 - Tailwind CSS 4
-- Google Generative AI (`@google/genai`)
-- OCR: `tesseract.js`
+- Mistral OCR
+- Mistral chat completions API
 - DOM-to-image: `html-to-image`
 - Icons: `lucide-react`
 - HTTP: `axios`
@@ -55,8 +55,8 @@ If you don't have an API key yet, obtain one from Google Generative AI and add i
 - `src/components/uploadArea` - image upload component
 - `src/components/RoastLevelSelector` - roast intensity selector
 - `src/components/RoastResult` - roast result display
-- `src/api/roast.ts` - prompt logic and AI API calls
-- `src/utils/ocr.ts` - screenshot text extraction
+- `src/api/roast.ts` - prompt logic and Mistral API calls
+- `src/utils/ocr.ts` - screenshot text extraction via Mistral OCR
 - `src/utils/share.ts` - meme creation and download
 - `src/types/roastResult.ts` - roast result type definitions
 - `src/index.css` - global styles and fonts
@@ -70,6 +70,6 @@ If you don't have an API key yet, obtain one from Google Generative AI and add i
 
 ## Notes
 
-- Ensure your `.env` file contains `VITE_GEMINI_API_KEY` as the API key must be available in the browser.
+- Ensure your `.env` file contains `VITE_MISTRAL_API_KEY` as the API key must be available in the browser.
 - If meme downloads aren't working, verify that `html-to-image` successfully renders elements with styling.
 - This application relies on screenshot analysis for best results; clear, un-blurred screenshots produce the best analysis.

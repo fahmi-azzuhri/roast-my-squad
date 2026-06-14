@@ -46,6 +46,10 @@ export default function RoastResult({ data }: RoastResultProps) {
         <p className="text-gray-600 text-sm mt-1">
           {data.squadType} Squad Detected
         </p>
+        <p className="text-gray-500 text-xs mt-1">
+          Kartu dominan: {data.cardProfile.dominant} (
+          {data.cardProfile.confidence}% yakin)
+        </p>
       </div>
 
       <div className="roast-card bg-linear-to-br from-red-900 to-black text-white p-8 rounded-lg mb-6">
@@ -105,6 +109,27 @@ export default function RoastResult({ data }: RoastResultProps) {
           <p className="text-sm font-bold text-red-600 mt-3 p-3 bg-red-100 rounded">
             Status: {data.detective.conclusion}
           </p>
+        </div>
+      </div>
+
+      <div className="roast-card bg-amber-50 border-2 border-amber-200 p-6 rounded-lg mb-6">
+        <h2 className="text-lg font-black text-amber-900 mb-3">
+          🃏 DETEKSI TIPE KARTU
+        </h2>
+        <p className="text-sm font-bold text-amber-900 mb-2">
+          Dominan: {data.cardProfile.dominant}
+        </p>
+        <p className="text-sm text-amber-800 mb-3">{data.cardProfile.note}</p>
+        <div className="space-y-2">
+          {data.cardProfile.clues.map((clue, i) => (
+            <p
+              key={i}
+              className="text-sm text-amber-800 flex items-start gap-2"
+            >
+              <span className="text-amber-500 font-bold">▸</span>
+              {clue}
+            </p>
+          ))}
         </div>
       </div>
 

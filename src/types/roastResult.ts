@@ -7,6 +7,12 @@ export interface RoastResult {
   spamThroughPass: number;
   squadType: "Sultan" | "Meta Abuser" | "Balance" | "Casual";
   squadValue: string;
+  cardProfile: {
+    dominant: "base" | "epic" | "showtime" | "mixed" | "unknown";
+    confidence: number;
+    clues: string[];
+    note: string;
+  };
   strengths: string[];
   weaknesses: string[];
   netizanComments: string[];

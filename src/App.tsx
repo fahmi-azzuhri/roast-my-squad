@@ -4,6 +4,7 @@ import RoastLevelSelector from "./components/RoastLevelSelector";
 import RoastResult from "./components/RoastResult";
 import { fileToBase64 } from "./utils/fileToBase64";
 import { roastSquad } from "./api/roast";
+import { extractTextFromImage } from "./utils/ocr";
 import type { RoastResult as RoastResultType } from "./types/roastResult";
 import type { RoastLevel } from "./components/RoastLevelSelector";
 import { Flame } from "lucide-react";
@@ -26,12 +27,8 @@ function App() {
       setError(null);
       const base64 = await fileToBase64(file);
 
-      let ocrText = "";
-      try {
-        const { extractTextFromImage } = await import("./utils/ocr");
-        const ocrResult = await extractTextFromImage(base64);
-        ocrText = ocrResult.summary || ocrResult.text || "";
-      } catch (ocrErr) {}
+      const ocrResult = await extractTextFromImage(base64);
+      const ocrText = ocrResult.summary || ocrResult.text || "";
 
       const data = await roastSquad(base64, selectedLevel, ocrText);
       setResult(data);
